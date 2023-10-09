@@ -54,7 +54,7 @@ class VM {
 		thread.addEventListener(TimerEvent.TIMER, run);
 		// create palette set(Nes only support 64 colors,the color show diffrent in diffrent TV mode,then i added two normal palette in here)
 		// 创建调色板(Nes仅支持64种颜色,不同显示模式的颜色显示不同,所以我添加在这里添加了两种常见的调色板)
-		vtPalette = [for(c in 0...0xff) null]; // (0xFF);
+		vtPalette = [for (c in 0...0xff) null]; // (0xFF);
 		// #0 palette is defined in NesDoc
 		// 0号调色板是NesDoc里定义的
 		var arr:Array<UInt> = [
@@ -66,12 +66,12 @@ class VM {
 			0xFF9FFFF3, 0xFF000000, 0xFF000000, 0xFF000000
 		];
 		vtPalette[0] = new Vector(arr.length);
-        for(c in 0...arr.length){
-            vtPalette[0][c] = arr[c];
-        }
+		for (c in 0...arr.length) {
+			vtPalette[0][c] = arr[c];
+		}
 		// #1 palette is used in many nes emulator
 		// 1号调色板被使用在很多模拟器里
-        arr = [
+		arr = [
 			0xFF7F7F7F, 0xFF2000B0, 0xFF2800B8, 0xFF6010A0, 0xFF982078, 0xFFB01030, 0xFFA03000, 0xFF784000, 0xFF485800, 0xFF386800, 0xFF386C00, 0xFF306040,
 			0xFF305080, 0xFF000000, 0xFF000000, 0xFF000000, 0xFFBCBCBC, 0xFF4060F8, 0xFF4040FF, 0xFF9040F0, 0xFFD840C0, 0xFFD84060, 0xFFE05000, 0xFFC07000,
 			0xFF888800, 0xFF50A000, 0xFF48A810, 0xFF48A068, 0xFF4090C0, 0xFF000000, 0xFF000000, 0xFF000000, 0xFFFFFFFF, 0xFF60A0FF, 0xFF5080FF, 0xFFA070FF,
@@ -80,9 +80,9 @@ class VM {
 			0xFFA0FFF0, 0xFFA0A0A0, 0xFF000000, 0xFF000000
 		];
 		vtPalette[1] = new Vector(arr.length);
-		for(c in 0...arr.length){
-            vtPalette[1][c] = arr[c];
-        }
+		for (c in 0...arr.length) {
+			vtPalette[1][c] = arr[c];
+		}
 		// set status
 		status = FREE;
 	}
@@ -163,7 +163,7 @@ class VM {
 		// clear#	BUS_BUS();
 
 		if (bus.curPAL == null || bus.curPAL.length == 0) {
-            //trace(vtPalette[0],"[][][][][][][");
+			// trace(vtPalette[0],"[][][][][][][");
 			bus.curPAL = vtPalette[0];
 		}
 	}
@@ -205,25 +205,15 @@ class VM {
 	/** private function
 		--------------------------- */
 	// 运行
-	var aaa = 0;
+	var n = 0;
 
 	private function run(e:TimerEvent):Void {
 		var vm_ft:Int = getTimer();
 
 		// output image
+
 		TV.bitmapData.unlock();
-
-		if (bus.ppu.vtIMG[0] != 0) {
-			if (aaa++ % 20 == 0) {
-                //此处bus.ppu.vtIMG数据和原版不对
-				//trace(bus.ppu.vtIMG);
-			}
-			// thread.stop();
-		}
-
-		
 		TV.bitmapData.setVector(TV.bitmapData.rect, bus.ppu.vtIMG);
-		
 		TV.bitmapData.lock();
 
 		// remark:NTSC mode
@@ -274,9 +264,8 @@ class VM {
 				// count FPS(计算FPS) - FC的CPU主频为1789772Hz/1秒
 				if (bus.ppu.nFrameCount % fc_fps == 0) {
 					runSecond += 1;
-					var avgTime:TextField = new TextField();
-					avgTime.text = Std.string(TV.stage.getChildByName('tfTime'));
-					avgTime.text = Std.string(Std.int(runTime / runSecond));
+					var avgTime:TextField = cast(TV.stage.getChildByName('tfTime'), TextField);
+					avgTime.text = "FPS:" + Std.string(Std.int(runTime / runSecond));
 				}
 				break;
 			}

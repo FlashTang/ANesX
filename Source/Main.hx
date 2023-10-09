@@ -32,13 +32,13 @@ class Main extends Sprite {
 		var TV:Bitmap = new Bitmap();
 		TV.bitmapData = new BitmapData(256, 240, false, 0);
 		this.stage.addChild(TV);
-
+		stage.color = 0x1D3E04;
 		// create speed of VM execution
 		var tf:TextField = new TextField();
 		tf.textColor = 0xFFFFFF;
 		tf.text = '---';
-		tf.x = 232;
-		tf.y = -3;
+		tf.x = 300;
+		tf.y = 10;
 		tf.name = 'tfTime';
 		this.stage.addChild(tf);
 
