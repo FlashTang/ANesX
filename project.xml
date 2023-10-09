@@ -7,6 +7,8 @@
 	<source path="Source" />
 	
 	<haxelib name="openfl" />
+
+	<window width="550" height="400" unless="html5"/>
 	
 	<assets path="Assets" rename="assets" />
 	

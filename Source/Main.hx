@@ -28,8 +28,6 @@ class Main extends Sprite {
 	var vm:VM;
 	public function new() {
 		super();
-
-		stage.frameRate = 60;
 		// create TV
 		var TV:Bitmap = new Bitmap();
 		TV.bitmapData = new BitmapData(256, 240, false, 0);
@@ -37,7 +35,7 @@ class Main extends Sprite {
 
 		// create speed of VM execution
 		var tf:TextField = new TextField();
-		tf.textColor = 0xFF0000;
+		tf.textColor = 0xFFFFFF;
 		tf.text = '---';
 		tf.x = 232;
 		tf.y = -3;
@@ -57,7 +55,7 @@ class Main extends Sprite {
 		text.textColor = 0xffffff;
 		text.width = 120;
 		text.text = "Open 打开 Nes Rom";
-		text.y = 2;
+		text.mouseEnabled = false;
 		bnOpen.addChild(text);
 		bnOpen.graphics.beginFill(0x000000);
 		bnOpen.graphics.drawRect(0,0,120,22);
