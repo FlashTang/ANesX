@@ -3,17 +3,6 @@ package;
 import openfl.utils.Function;
 
 class CPU extends Node{
-    function Boolean(x:Int):Bool {
-        return x != 0;
-    }
-    function int(x:Any):Int {
-		return Std.int(x);
-	}
-
-    function b_int(x:Bool):Int {
-        return x ? 1 : 0;
-    }
-
 	/** public variant
 	---------------------------*/
 		public var vtMem:Array<Int>;				// Memory,somrwhere are mapping	- 内存,某些地址为映射地址
@@ -94,26 +83,26 @@ class CPU extends Node{
 		}
 		// Non-Maskable Interrupt
 		public function NMI():Void{
-			vtMem[int(0x0100 + S)] = PC >> 8;
+			vtMem[Utils.int(0x0100 + S)] = PC >> 8;
 			S -= 1;S &= 0xFF; // [fixed]
-			vtMem[int(0x0100 + S)] = PC & 0xFF;
+			vtMem[Utils.int(0x0100 + S)] = PC & 0xFF;
 			S -= 1;S &= 0xFF; // [fixed]
 			BF = false;
-			P = b_int(NF) << 7 | b_int(VF) << 6 | b_int(RF) << 5 | b_int(BF) << 4 | b_int(DF) << 3 | b_int(IF) << 2 | b_int(ZF) << 1 | b_int(CF);
-			vtMem[int(0x0100 + S)] = P;
+			P = Utils.int(NF) << 7 | Utils.int(VF) << 6 | Utils.int(RF) << 5 | Utils.int(BF) << 4 | Utils.int(DF) << 3 | Utils.int(IF) << 2 | Utils.int(ZF) << 1 | Utils.int(CF);
+			vtMem[Utils.int(0x0100 + S)] = P;
 			S -= 1;S &= 0xFF; // [fixed]
 			IF = true;
 			PC = vtMem[0xFFFB] << 8 | vtMem[0xFFFA];
 		}
 		// Interrupt Request
 		public function IRQ():Void{
-			vtMem[int(0x0100 + S)] = PC >> 8;
+			vtMem[Utils.int(0x0100 + S)] = PC >> 8;
 			S -= 1;S &= 0xFF; // [fixed]
-			vtMem[int(0x0100 + S)] = PC & 0xFF;
+			vtMem[Utils.int(0x0100 + S)] = PC & 0xFF;
 			S -= 1;S &= 0xFF; // [fixed]
 			BF = false;
-			P = int(NF) << 7 | int(VF) << 6 | int(RF) << 5 | int(BF) << 4 | int(DF) << 3 | int(IF) << 2 | int(ZF) << 1 | int(CF);
-			vtMem[int(0x0100 + S)] = P;
+			P = Utils.int(NF) << 7 | Utils.int(VF) << 6 | Utils.int(RF) << 5 | Utils.int(BF) << 4 | Utils.int(DF) << 3 | Utils.int(IF) << 2 | Utils.int(ZF) << 1 | Utils.int(CF);
+			vtMem[Utils.int(0x0100 + S)] = P;
 			S -= 1;S &= 0xFF; // [fixed]
 			IF = true;
 			PC = vtMem[0xFFFF] << 8 | vtMem[0xFFFE];
@@ -182,7 +171,7 @@ class CPU extends Node{
 			else if(address == 0x4014){					// DMA
 				var base:Int = 0x0100 * value;
 				for(i in 0...256){
-					bus.ppu.vtSpRAM[i] = vtMem[int(base + i)];
+					bus.ppu.vtSpRAM[i] = vtMem[Utils.int(base + i)];
 				}
 				executedCC += 512;
 			}
@@ -231,7 +220,7 @@ class CPU extends Node{
 								// 2.执行指令[inc]
 								src = r1(addr) + 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;// src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -247,16 +236,16 @@ class CPU extends Node{
 								addr = tmpN + X & 0xFFFF;
 								// 2.执行指令[sbc]
 								src = r1(addr);
-								dst = int(A - src) - int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0xFC*/
 							}
@@ -277,16 +266,16 @@ class CPU extends Node{
 								addr = tmpN + Y;
 								// 2.执行指令[sbc]
 								src = r1(addr);
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * SED
@@ -308,7 +297,7 @@ class CPU extends Node{
 								// 2.执行指令[inc]
 								src = vtMem[addr] + 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -321,13 +310,13 @@ class CPU extends Node{
 								addr = vtMem[PC] + X & 0xFF; PC += 1;
 								// 2.执行指令[sbc]
 								src = vtMem[addr];
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 							}
 							else{		/*0xF4*/
@@ -348,16 +337,16 @@ class CPU extends Node{
 								addr = tmpN + Y;
 								// 2.执行指令[sbc]
 								src = r1(addr);
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BEQ #8bit
@@ -368,11 +357,11 @@ class CPU extends Node{
 								// 2.执行指令[beq]
 								if(ZF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -393,7 +382,7 @@ class CPU extends Node{
 								// 2.执行指令[inc]
 								src = r1(addr) + 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0; //src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -408,13 +397,13 @@ class CPU extends Node{
 								addr = u_or << 8 | l_or;
 								// 2.执行指令[sbc]
 								src = r1(addr);
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 							}
 							/**
@@ -430,7 +419,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 							}
 						}
@@ -450,13 +439,13 @@ class CPU extends Node{
 								l_or = vtMem[PC]; PC += 1;
 								// 2.执行指令[sbc]
 								src = l_or;
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 							}
 							/**
@@ -467,7 +456,7 @@ class CPU extends Node{
 								X += 1;
 								X &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0 ;//X == 0;//!X;
 							}
 						}
@@ -483,7 +472,7 @@ class CPU extends Node{
 								// 2.执行指令[inc]
 								src = vtMem[addr] + 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -496,13 +485,13 @@ class CPU extends Node{
 								addr = vtMem[PC]; PC += 1;
 								// 2.执行指令[sbc]
 								src = vtMem[addr];
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 							}
 							/**
@@ -516,7 +505,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 							}
 						}
@@ -531,16 +520,16 @@ class CPU extends Node{
 							else if(oc == 0xE1){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[sbc]
 								src = r1(addr);
-								dst = int(A - src) - b_int(!CF);
+								dst = Utils.int(A - src) - Utils.int(!CF);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & (A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & (A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//A == 0;//!A;
 							}
 							/**
@@ -554,7 +543,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 							}
 						}
@@ -576,7 +565,7 @@ class CPU extends Node{
 								// 2.执行指令[dec]
 								src = r1(addr) - 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -595,10 +584,10 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0xDC*/
 							}
@@ -622,10 +611,10 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * CLD
@@ -647,7 +636,7 @@ class CPU extends Node{
 								// 2.执行指令[dec]
 								src = vtMem[addr] - 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -663,7 +652,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 							}
 							else{		/*0xD4*/
@@ -687,10 +676,10 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//dst == 0;//!dst;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BNE #8bit
@@ -701,11 +690,11 @@ class CPU extends Node{
 								// 2.执行指令[bne]
 								if(!ZF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -726,7 +715,7 @@ class CPU extends Node{
 								// 2.执行指令[dec]
 								src = r1(addr) - 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -744,7 +733,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 							/**
@@ -760,7 +749,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 						}
@@ -775,7 +764,7 @@ class CPU extends Node{
 								X -= 1;
 								X &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -789,7 +778,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 							/**
@@ -800,7 +789,7 @@ class CPU extends Node{
 								Y += 1;
 								Y &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -816,7 +805,7 @@ class CPU extends Node{
 								// 2.执行指令[dec]
 								src = vtMem[addr] - 1 & 0xFF;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -832,7 +821,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 							/**
@@ -846,7 +835,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 						}
@@ -861,13 +850,13 @@ class CPU extends Node{
 							else if(oc == 0xC1){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[cmp]
 								dst = A - r1(addr);
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 							/**
@@ -881,7 +870,7 @@ class CPU extends Node{
 								// 3.标志位设置
 								CF = dst < 0x100;
 								dst &= 0xFF; // [fixed]
-								NF = Boolean(dst & 0x80);
+								NF = Utils.i2b(dst & 0x80);
 								ZF = dst == 0;//!dst;
 							}
 						}
@@ -905,10 +894,10 @@ class CPU extends Node{
 								// 2.执行指令[ldx]
 								X = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * LDA 16bit,X
@@ -923,10 +912,10 @@ class CPU extends Node{
 								A = r1(addr);
                                 //trace(A,"nnnnnnnn");
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * LDY 16bit,X
@@ -940,10 +929,10 @@ class CPU extends Node{
 								// 2.执行指令[ldy]
 								Y = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 						}
 						else if(oc >= 0xB8){
@@ -956,7 +945,7 @@ class CPU extends Node{
 								// 2.执行指令[tsx]
 								X = S;
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -971,10 +960,10 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * CLV
@@ -996,7 +985,7 @@ class CPU extends Node{
 								// 2.执行指令[ldx]
 								X = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -1008,7 +997,7 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1020,7 +1009,7 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								Y = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1040,10 +1029,10 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BCS #8bit
@@ -1054,11 +1043,11 @@ class CPU extends Node{
 								// 2.执行指令[bcs]
 								if(CF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -1079,7 +1068,7 @@ class CPU extends Node{
 								// 2.执行指令[ldx]
 								X = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -1093,7 +1082,7 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1107,7 +1096,7 @@ class CPU extends Node{
 								// 2.执行指令[ldy]
 								Y = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1121,7 +1110,7 @@ class CPU extends Node{
 								// 2.执行指令[tax]
 								X = A;
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -1133,7 +1122,7 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = l_or;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1143,7 +1132,7 @@ class CPU extends Node{
 								// 2.执行指令[tay]
 								Y = A;
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1159,7 +1148,7 @@ class CPU extends Node{
 								// 2.执行指令[ldx]
 								X = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -1171,7 +1160,7 @@ class CPU extends Node{
 								// 2.执行指令[lda]
 								A = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1183,7 +1172,7 @@ class CPU extends Node{
 								// 2.执行指令[ldy]
 								Y = vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1199,7 +1188,7 @@ class CPU extends Node{
 								// 2.执行指令[ldx]
 								X = l_or;
 								// 3.标志位设置
-								NF = Boolean(X & 0x80);
+								NF = Utils.i2b(X & 0x80);
 								ZF = X == 0;//!X;
 							}
 							/**
@@ -1208,11 +1197,11 @@ class CPU extends Node{
 							else if(oc == 0xA1){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[lda]
 								A = r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1224,7 +1213,7 @@ class CPU extends Node{
 								// 2.执行指令[ldy]
 								Y = l_or;
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1282,7 +1271,7 @@ class CPU extends Node{
 								// 2.执行指令[tya]
 								A = Y;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 						}
@@ -1343,11 +1332,11 @@ class CPU extends Node{
 								// 2.执行指令[bcc]
 								if(!CF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -1404,7 +1393,7 @@ class CPU extends Node{
 								// 2.执行指令[txa]
 								A = X;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else if(oc == 0x89){
@@ -1417,7 +1406,7 @@ class CPU extends Node{
 								Y -= 1;
 								Y &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(Y & 0x80);
+								NF = Utils.i2b(Y & 0x80);
 								ZF = Y == 0;//!Y;
 							}
 						}
@@ -1466,7 +1455,7 @@ class CPU extends Node{
 							else if(oc == 0x81){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[sta]
 								src = A;
 								w1(addr,src);
@@ -1494,10 +1483,10 @@ class CPU extends Node{
 								// 2.执行指令[ror]
 								src = r1(addr);
 								tmpB = CF;
-								CF = Boolean(src & 0x01);
-								src = src >> 1 | b_int(tmpB) << 7;
+								CF = Utils.i2b(src & 0x01);
+								src = src >> 1 | Utils.int(tmpB) << 7;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -1513,16 +1502,16 @@ class CPU extends Node{
 								addr = tmpN + X & 0xFFFF;
 								// 2.执行指令[adc]
 								src = r1(addr);
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0x7C*/
 							}
@@ -1543,16 +1532,16 @@ class CPU extends Node{
 								addr = tmpN + Y;
 								// 2.执行指令[adc]
 								src = r1(addr);
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * SEI
@@ -1574,10 +1563,10 @@ class CPU extends Node{
 								// 2.执行指令[ror]
 								src = vtMem[addr];
 								tmpB = CF;
-								CF = Boolean(src & 0x01);
-								src = src >> 1 | b_int(tmpB) << 7;
+								CF = Utils.i2b(src & 0x01);
+								src = src >> 1 | Utils.int(tmpB) << 7;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -1590,13 +1579,13 @@ class CPU extends Node{
 								addr = vtMem[PC] + X & 0xFF; PC += 1;
 								// 2.执行指令[adc]
 								src = vtMem[addr];
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x74*/
@@ -1617,16 +1606,16 @@ class CPU extends Node{
 								addr = tmpN + Y;
 								// 2.执行指令[adc]
 								src = r1(addr);
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BVS #8bit
@@ -1637,11 +1626,11 @@ class CPU extends Node{
 								// 2.执行指令[bvs]
 								if(VF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -1662,10 +1651,10 @@ class CPU extends Node{
 								// 2.执行指令[ror]
 								src = r1(addr);
 								tmpB = CF;
-								CF = Boolean(src & 0x01);
-								src = src >> 1 | b_int(tmpB) << 7;
+								CF = Utils.i2b(src & 0x01);
+								src = src >> 1 | Utils.int(tmpB) << 7;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -1680,13 +1669,13 @@ class CPU extends Node{
 								addr = u_or << 8 | l_or;
 								// 2.执行指令[adc]
 								src = r1(addr);
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1713,11 +1702,11 @@ class CPU extends Node{
 							else if(oc == 0x6A){
 								// 2.执行指令[ror]
 								tmpB = CF;
-								CF = Boolean(A & 0x01);
-								A = A >> 1 | b_int(tmpB) << 7;
+								CF = Utils.i2b(A & 0x01);
+								A = A >> 1 | Utils.int(tmpB) << 7;
 								A &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1728,13 +1717,13 @@ class CPU extends Node{
 								l_or = vtMem[PC]; PC += 1;
 								// 2.执行指令[adc]
 								src = l_or;
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1743,9 +1732,9 @@ class CPU extends Node{
 							else{		/*0x68*/
 								// 2.执行指令[pla]
 								S += 1;S &= 0xFF; // [fixed]
-								A = vtMem[int(0x0100 + S)];
+								A = vtMem[Utils.int(0x0100 + S)];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 						}
@@ -1761,10 +1750,10 @@ class CPU extends Node{
 								// 2.执行指令[ror]
 								src = vtMem[addr];
 								tmpB = CF;
-								CF = Boolean(src & 0x01);
-								src = src >> 1 | b_int(tmpB) << 7;
+								CF = Utils.i2b(src & 0x01);
+								src = src >> 1 | Utils.int(tmpB) << 7;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -1777,13 +1766,13 @@ class CPU extends Node{
 								addr = vtMem[PC]; PC += 1;
 								// 2.执行指令[adc]
 								src = vtMem[addr];
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x64*/
@@ -1800,16 +1789,16 @@ class CPU extends Node{
 							else if(oc == 0x61){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[adc]
 								src = r1(addr);
-								dst = int(A + src) + b_int(CF);
+								dst = Utils.int(A + src) + Utils.int(CF);
 								// 3.标志位设置
 								CF = dst > 0xFF;
 								dst &= 0xFF; // [fixed]
-								VF = Boolean(0x80 & ~(A ^ src) & (A ^ dst));
+								VF = Utils.i2b(0x80 & ~(A ^ src) & (A ^ dst));
 								A = dst;
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -1818,9 +1807,9 @@ class CPU extends Node{
 							else{		/*0x60*/
 								// 1.栈寻址
 								S += 1;S &= 0xFF; // [fixed]
-								l_addr = vtMem[int(0x0100 + S)];
+								l_addr = vtMem[Utils.int(0x0100 + S)];
 								S += 1;S &= 0xFF; // [fixed]
-								u_addr = vtMem[int(0x0100 + S)];
+								u_addr = vtMem[Utils.int(0x0100 + S)];
 								// 2.执行指令[rts]
 								addr = u_addr << 8 | l_addr;
 								PC = addr + 1;
@@ -1843,10 +1832,10 @@ class CPU extends Node{
 								addr = tmpN + X & 0xFFFF;
 								// 2.执行指令[lsr]
 								src = r1(addr);
-								CF = Boolean(src & 0x01);
+								CF = Utils.i2b(src & 0x01);
 								src >>= 1;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -1863,10 +1852,10 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0x5C*/
 							}
@@ -1888,10 +1877,10 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * CLI
@@ -1912,10 +1901,10 @@ class CPU extends Node{
 								addr = vtMem[PC] + X & 0xFF; PC += 1;
 								// 2.执行指令[lsr]
 								src = vtMem[addr];
-								CF = Boolean(src & 0x01);
+								CF = Utils.i2b(src & 0x01);
 								src >>= 1;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -1929,7 +1918,7 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x54*/
@@ -1951,10 +1940,10 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BVC #8bit
@@ -1965,11 +1954,11 @@ class CPU extends Node{
 								// 2.执行指令[bvc]
 								if(!VF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -1989,10 +1978,10 @@ class CPU extends Node{
 								addr = u_or << 8 | l_or;
 								// 2.执行指令[lsr]
 								src = r1(addr);
-								CF = Boolean(src & 0x01);
+								CF = Utils.i2b(src & 0x01);
 								src >>= 1;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -2008,7 +1997,7 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2031,11 +2020,11 @@ class CPU extends Node{
 							 */
 							else if(oc == 0x4A){
 								// 2.执行指令[lsr]
-								CF = Boolean(A & 0x01);
+								CF = Utils.i2b(A & 0x01);
 								A >>= 1;
 								A &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2047,7 +2036,7 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= l_or;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2072,10 +2061,10 @@ class CPU extends Node{
 								addr = vtMem[PC]; PC += 1;
 								// 2.执行指令[lsr]
 								src = vtMem[addr];
-								CF = Boolean(src & 0x01);
+								CF = Utils.i2b(src & 0x01);
 								src >>= 1;
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -2089,7 +2078,7 @@ class CPU extends Node{
 								// 2.执行指令[eor]
 								A ^= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x44*/
@@ -2106,11 +2095,11 @@ class CPU extends Node{
 							else if(oc == 0x41){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[eor]
 								A ^= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2119,20 +2108,20 @@ class CPU extends Node{
 							else{		/*0x40*/
 								// 栈还原
 								S += 1;S &= 0xFF; // [fixed]
-								P = vtMem[int(0x0100 + S)];
-								NF = Boolean(P & 0x80);
-								VF = Boolean(P & 0x40);
+								P = vtMem[Utils.int(0x0100 + S)];
+								NF = Utils.i2b(P & 0x80);
+								VF = Utils.i2b(P & 0x40);
 								RF = true;
-								BF = Boolean(P & 0x10);
-								DF = Boolean(P & 0x08);
-								IF = Boolean(P & 0x04);
-								ZF = Boolean(P & 0x02) ;
-								CF = Boolean(P & 0x01);
+								BF = Utils.i2b(P & 0x10);
+								DF = Utils.i2b(P & 0x08);
+								IF = Utils.i2b(P & 0x04);
+								ZF = Utils.i2b(P & 0x02) ;
+								CF = Utils.i2b(P & 0x01);
 								// 栈寻址
 								S += 1;S &= 0xFF; // [fixed]
-								l_addr = vtMem[int(0x0100 + S)];
+								l_addr = vtMem[Utils.int(0x0100 + S)];
 								S += 1;S &= 0xFF; // [fixed]
-								u_addr = vtMem[int(0x0100 + S)];
+								u_addr = vtMem[Utils.int(0x0100 + S)];
 								addr = u_addr << 8 | l_addr;
 								PC = addr;
 							}
@@ -2157,11 +2146,11 @@ class CPU extends Node{
 								// 2.执行指令[rol]
 								src = r1(addr);
 								tmpB = CF;
-								CF = Boolean(src & 0x80);
-								src = src << 1 | b_int(tmpB);
+								CF = Utils.i2b(src & 0x80);
+								src = src << 1 | Utils.int(tmpB);
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -2178,10 +2167,10 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0x3C*/
 							}
@@ -2203,10 +2192,10 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * SEC
@@ -2228,11 +2217,11 @@ class CPU extends Node{
 								// 2.执行指令[rol]
 								src = vtMem[addr];
 								tmpB = CF;
-								CF = Boolean(src & 0x80);
-								src = src << 1 | b_int(tmpB);
+								CF = Utils.i2b(src & 0x80);
+								src = src << 1 | Utils.int(tmpB);
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -2246,7 +2235,7 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x34*/
@@ -2268,10 +2257,10 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BMI #8bit
@@ -2282,11 +2271,11 @@ class CPU extends Node{
 								// 2.执行指令[bmi]
 								if(NF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -2307,11 +2296,11 @@ class CPU extends Node{
 								// 2.执行指令[rol]
 								src = r1(addr);
 								tmpB = CF;
-								CF = Boolean(src & 0x80);
-								src = src << 1 | b_int(tmpB);
+								CF = Utils.i2b(src & 0x80);
+								src = src << 1 | Utils.int(tmpB);
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -2327,7 +2316,7 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2341,8 +2330,8 @@ class CPU extends Node{
 								// 2.执行指令[bit]
 								src = r1(addr);
 								ZF = (src & A) == 0;//!(src & A);
-								NF = Boolean(src & 0x80);
-								VF = Boolean(src & 0x40);
+								NF = Utils.i2b(src & 0x80);
+								VF = Utils.i2b(src & 0x40);
 							}
 						}
 						else if(oc >= 0x28){
@@ -2354,11 +2343,11 @@ class CPU extends Node{
 							else if(oc == 0x2A){
 								// 2.执行指令[rol]
 								tmpB = CF;
-								CF = Boolean(A & 0x80);
-								A = A << 1 | b_int(tmpB);
+								CF = Utils.i2b(A & 0x80);
+								A = A << 1 | Utils.int(tmpB);
 								A &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2370,7 +2359,7 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= l_or;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2379,15 +2368,15 @@ class CPU extends Node{
 							else{		/*0x28*/
 								// 2.执行指令[plp]
 								S += 1;S &= 0xFF; // [fixed]
-								P = vtMem[int(0x0100 + S)];
-								NF = Boolean(P & 0x80);
-								VF = Boolean(P & 0x40);
+								P = vtMem[Utils.int(0x0100 + S)];
+								NF = Utils.i2b(P & 0x80);
+								VF = Utils.i2b(P & 0x40);
 								RF = true;
-								BF = Boolean(P & 0x10);
-								DF = Boolean(P & 0x08);
-								IF = Boolean(P & 0x04);
-								ZF = Boolean(P & 0x02);
-								CF = Boolean(P & 0x01);
+								BF = Utils.i2b(P & 0x10);
+								DF = Utils.i2b(P & 0x08);
+								IF = Utils.i2b(P & 0x04);
+								ZF = Utils.i2b(P & 0x02);
+								CF = Utils.i2b(P & 0x01);
 							}
 						}
 						else if(oc >= 0x24){
@@ -2402,11 +2391,11 @@ class CPU extends Node{
 								// 2.执行指令[rol]
 								src = vtMem[addr];
 								tmpB = CF;
-								CF = Boolean(src & 0x80);
-								src = src << 1 | b_int(tmpB);
+								CF = Utils.i2b(src & 0x80);
+								src = src << 1 | Utils.int(tmpB);
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -2420,7 +2409,7 @@ class CPU extends Node{
 								// 2.执行指令[and]
 								A &= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2432,8 +2421,8 @@ class CPU extends Node{
 								// 2.执行指令[bit]
 								src = vtMem[addr];
 								ZF = (src & A) == 0;//!(src & A);
-								NF = Boolean(src & 0x80);
-								VF = Boolean(src & 0x40);
+								NF = Utils.i2b(src & 0x80);
+								VF = Utils.i2b(src & 0x40);
 							}
 						}
 						else{
@@ -2447,11 +2436,11 @@ class CPU extends Node{
 							else if(oc == 0x21){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[and]
 								A &= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2464,9 +2453,9 @@ class CPU extends Node{
 								addr = u_or << 8 | l_or;
 								// 2.执行指令[jsr]
 								PC -= 1; // 跳回来一下
-								vtMem[int(0x0100 + S)] = PC >> 8;
+								vtMem[Utils.int(0x0100 + S)] = PC >> 8;
 								S -= 1;S &= 0xFF; // [fixed]
-								vtMem[int(0x0100 + S)] = PC & 0xFF;
+								vtMem[Utils.int(0x0100 + S)] = PC & 0xFF;
 								S -= 1;S &= 0xFF; // [fixed]
 								PC = addr;
 							}
@@ -2488,11 +2477,11 @@ class CPU extends Node{
 								addr = tmpN + X & 0xFFFF;
 								// 2.执行指令[asl]
 								src = r1(addr);
-								CF = Boolean(src & 0x80);
+								CF = Utils.i2b(src & 0x80);
 								src <<= 1;
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -2509,10 +2498,10 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							else{		/*0x1C*/
 							}
@@ -2534,10 +2523,10 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * CLC
@@ -2558,11 +2547,11 @@ class CPU extends Node{
 								addr = vtMem[PC] + X & 0xFF; PC += 1;
 								// 2.执行指令[asl]
 								src = vtMem[addr];
-								CF = Boolean(src & 0x80);
+								CF = Utils.i2b(src & 0x80);
 								src <<= 1;
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -2576,7 +2565,7 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x14*/
@@ -2598,10 +2587,10 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 								// 9.累增时钟周期
-								executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+								executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 							}
 							/**
 							 * BPL #8bit
@@ -2612,11 +2601,11 @@ class CPU extends Node{
 								// 2.执行指令[bpl]
 								if(!NF){
 									tmpN = PC;
-									addr = PC + (int(l_or << 24) >> 24) & 0xFFFF;
+									addr = PC + (Utils.int(l_or << 24) >> 24) & 0xFFFF;
 									PC = addr;
 									// 9.累增时钟周期
 									executedCC += 1;
-									executedCC += b_int((tmpN & 0xFF00) != (addr & 0xFF00));
+									executedCC += Utils.int((tmpN & 0xFF00) != (addr & 0xFF00));
 								}
 							}
 						}
@@ -2636,11 +2625,11 @@ class CPU extends Node{
 								addr = u_or << 8 | l_or;
 								// 2.执行指令[asl]
 								src = r1(addr);
-								CF = Boolean(src & 0x80);
+								CF = Utils.i2b(src & 0x80);
 								src <<= 1;
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								w1(addr,src);
@@ -2656,7 +2645,7 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x0C*/
@@ -2670,11 +2659,11 @@ class CPU extends Node{
 							 */
 							else if(oc == 0x0A){
 								// 2.执行指令[asl]
-								CF = Boolean(A & 0x80);
+								CF = Utils.i2b(A & 0x80);
 								A <<= 1;
 								A &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2686,7 +2675,7 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= l_or;
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2694,8 +2683,8 @@ class CPU extends Node{
 							 */
 							else{		/*0x08*/
 								// 2.执行指令[php]
-								P = b_int(NF) << 7 | b_int(VF) << 6 | b_int(RF) << 5 | b_int(BF) << 4 | b_int(DF) << 3 | b_int(IF) << 2 | b_int(ZF) << 1 | b_int(CF);
-								vtMem[int(0x0100 + S)] = P;
+								P = Utils.int(NF) << 7 | Utils.int(VF) << 6 | Utils.int(RF) << 5 | Utils.int(BF) << 4 | Utils.int(DF) << 3 | Utils.int(IF) << 2 | Utils.int(ZF) << 1 | Utils.int(CF);
+								vtMem[Utils.int(0x0100 + S)] = P;
 								S -= 1;S &= 0xFF; // [fixed]
 							}
 						}
@@ -2710,11 +2699,11 @@ class CPU extends Node{
 								addr = vtMem[PC]; PC += 1;
 								// 2.执行指令[asl]
 								src = vtMem[addr];
-								CF = Boolean(src & 0x80);
+								CF = Utils.i2b(src & 0x80);
 								src <<= 1;
 								src &= 0xFF; // [fixed]
 								// 3.标志位设置
-								NF = Boolean(src & 0x80);
+								NF = Utils.i2b(src & 0x80);
 								ZF = src == 0;//!src;
 								// 4.保存数据
 								vtMem[addr] = src;
@@ -2728,7 +2717,7 @@ class CPU extends Node{
 								// 2.执行指令[ora]
 								A |= vtMem[addr];
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							else{		/*0x04*/
@@ -2745,11 +2734,11 @@ class CPU extends Node{
 							else if(oc == 0x01){
 								// 1.先零页X变址后间址寻址
 								l_or = vtMem[PC]; PC += 1;
-								addr = vtMem[int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
+								addr = vtMem[Utils.int(l_or + X) + 1 & 0xFF] << 8 | vtMem[l_or + X & 0xFF];
 								// 2.执行指令[ora]
 								A |= r1(addr);
 								// 3.标志位设置
-								NF = Boolean(A & 0x80);
+								NF = Utils.i2b(A & 0x80);
 								ZF = A == 0;//!A;
 							}
 							/**
@@ -2758,15 +2747,15 @@ class CPU extends Node{
 							else{		/*0x00*/
 								// 步骤1 - stack <- PC + 2
 								PC += 1;
-								vtMem[int(0x0100 + S)] = PC >> 8;
+								vtMem[Utils.int(0x0100 + S)] = PC >> 8;
 								S -= 1;S &= 0xFF; // [fixed]
-								vtMem[int(0x0100 + S)] = PC & 0xFF;
+								vtMem[Utils.int(0x0100 + S)] = PC & 0xFF;
 								S -= 1;S &= 0xFF; // [fixed]
 								// 步骤2
 								BF = true;
 								// 步骤3 - stack <- P
-								P = b_int(NF) << 7 | b_int(VF) << 6 | b_int(RF) << 5 | b_int(BF) << 4 | b_int(DF) << 3 | b_int(IF) << 2 | b_int(ZF) << 1 | b_int(CF);
-								vtMem[int(0x0100 + S)] = P;
+								P = Utils.int(NF) << 7 | Utils.int(VF) << 6 | Utils.int(RF) << 5 | Utils.int(BF) << 4 | Utils.int(DF) << 3 | Utils.int(IF) << 2 | Utils.int(ZF) << 1 | Utils.int(CF);
+								vtMem[Utils.int(0x0100 + S)] = P;
 								S -= 1;S &= 0xFF; // [fixed]
 								// 步骤4
 								IF = true;

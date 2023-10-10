@@ -11,14 +11,6 @@ import openfl.utils.Timer;
 import openfl.Lib.getTimer;
 
 class VM {
-	function int(x:Any):Int {
-		return Std.int(x);
-	}
-
-	function Boolean(x:Int):Bool {
-		return x != 0;
-	}
-
 	/** private const
 		--------------------------- */
 	private var FREE:Int = 1;
@@ -33,7 +25,7 @@ class VM {
 
 	// clear#
 	private var fc_fps:Int = 60; // fps
-	private var fc_ft:Int = Std.int(1000 / 60); // fps interval
+	private var fc_ft:Int = Utils.int(1000 / 60); // fps interval
 
 	private var TV:Bitmap; // display object by connect(显示器)
 	private var nextScanline:Int = 0;
@@ -107,10 +99,10 @@ class VM {
 		// byte5
 		bus.nVRomNum = iNes[5]; // Vedio ROM number,every one 8K		- VROM数量,每个8K
 		// byte6
-		/* bit0 */ bus.bMirror_V = Boolean(iNes[6] & 0x01); // Mirror Flag,0:horizontal;1:Vertical	- 镜像标志,0:横向;1:纵向
-		/* bit1 */ bus.bBattery = Boolean(iNes[6] & 0x02); // Save RAM($6000-$7FFF)
-		/* bit2 */ bus.bTrainer = Boolean(iNes[6] & 0x04); // Trainer Flag							- 引导标志
-		/* bit3 */ bus.bMirror_F = Boolean(iNes[6] & 0x08); // Four Screen Dlag						- 四屏标志
+		/* bit0 */ bus.bMirror_V = Utils.i2b(iNes[6] & 0x01); // Mirror Flag,0:horizontal;1:Vertical	- 镜像标志,0:横向;1:纵向
+		/* bit1 */ bus.bBattery = Utils.i2b(iNes[6] & 0x02); // Save RAM($6000-$7FFF)
+		/* bit2 */ bus.bTrainer = Utils.i2b(iNes[6] & 0x04); // Trainer Flag							- 引导标志
+		/* bit3 */ bus.bMirror_F = Utils.i2b(iNes[6] & 0x08); // Four Screen Dlag						- 四屏标志
 		/* bit[4-7] */ bus.nMapper = (iNes[6] & 0xF0) >> 4; // Lower 4 bits of Mapper				- Mapper的低4位
 
 		// byte7
@@ -249,7 +241,7 @@ class VM {
 			// 4.CPU cc of HBlank of need to execute(执行HBalnk对应的CPU时钟频率)
 			bankCC = 28;
 			if (bus.cpu.executedCC < bankCC) {
-				if (bus.cpu.exec(int(bankCC - bus.cpu.executedCC)) == false) {
+				if (bus.cpu.exec(Utils.int(bankCC - bus.cpu.executedCC)) == false) {
 					thread.stop();
 					return;
 				}
@@ -265,7 +257,7 @@ class VM {
 				if (bus.ppu.nFrameCount % fc_fps == 0) {
 					runSecond += 1;
 					var avgTime:TextField = cast(TV.stage.getChildByName('tfTime'), TextField);
-					avgTime.text = "FPS:" + Std.string(Std.int(runTime / runSecond));
+					avgTime.text = "FPS:" + Std.string(Utils.int(runTime / runSecond));
 				}
 				break;
 			}

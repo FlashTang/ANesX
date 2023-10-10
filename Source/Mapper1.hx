@@ -12,10 +12,6 @@ class Mapper1 extends Node implements Mapper {
 	private var b8kVRom:Bool;
 	private var nVRomSize:Int = 0;
 
-	function int(x:Any):Int {
-		return Std.int(x);
-	}
-
 	// 构造函数
 	public function new() {
 		nShiftReg = 0;
@@ -38,13 +34,13 @@ class Mapper1 extends Node implements Mapper {
 		offset = 0x10;
 
 		for (i in 0...0x4000) {
-			bus.cpu.vtMem[int(0x8000 + i)] = bus.vtRom[int(offset + i)];
+			bus.cpu.vtMem[Utils.int(0x8000 + i)] = bus.vtRom[Utils.int(offset + i)];
 		}
 		// load last PRG-ROM of 16K		- 载入最后一个16K的PRG-ROM
-		offset = 0x10 + int(int(bus.nPRomNum - 1) * 0x4000);
+		offset = 0x10 + Utils.int(Utils.int(bus.nPRomNum - 1) * 0x4000);
 
 		for (i in 0...0x4000) {
-			bus.cpu.vtMem[int(0xC000 + i)] = bus.vtRom[int(offset + i)];
+			bus.cpu.vtMem[Utils.int(0xC000 + i)] = bus.vtRom[Utils.int(offset + i)];
 		}
 	}
 
@@ -83,15 +79,15 @@ class Mapper1 extends Node implements Mapper {
 			}
 			nReg1 = nTemp;
 			if (b8kVRom) {
-				offset = 0x10 + int(int(bus.nPRomNum * 0x4000) + int(int(nReg1 % int(bus.nVRomNum)) * 0x2000));
+				offset = 0x10 + Utils.int(Utils.int(bus.nPRomNum * 0x4000) + Utils.int(Utils.int(nReg1 % Utils.int(bus.nVRomNum)) * 0x2000));
 				nVRomSize = 0x2000;
 			} else {
-				offset = 0x10 + int(int(bus.nPRomNum * 0x4000) + int(int(nReg1 % int(bus.nVRomNum * 2)) * 0x1000));
+				offset = 0x10 + Utils.int(Utils.int(bus.nPRomNum * 0x4000) + Utils.int(Utils.int(nReg1 % Utils.int(bus.nVRomNum * 2)) * 0x1000));
 				nVRomSize = 0x1000;
 			}
 
 			for (i in 0...nVRomSize) {
-				bus.ppu.vtVRam[i] = bus.vtRom[int(offset + i)];
+				bus.ppu.vtVRam[i] = bus.vtRom[Utils.int(offset + i)];
 			}
 		}
 		// register 2(swtich upper VROM of 4K)		- VROM高部4K切换
@@ -104,10 +100,10 @@ class Mapper1 extends Node implements Mapper {
 			if (b8kVRom) {
 				return;
 			}
-			offset = 0x10 + int(int(bus.nPRomNum * 0x4000) + int(int(nReg2 % int(bus.nVRomNum * 2)) * 0x1000));
+			offset = 0x10 + Utils.int(Utils.int(bus.nPRomNum * 0x4000) + Utils.int(Utils.int(nReg2 % Utils.int(bus.nVRomNum * 2)) * 0x1000));
 
 			for (i in 0...0x1000) {
-				bus.ppu.vtVRam[int(0x1000 + i)] = bus.vtRom[int(offset + i)];
+				bus.ppu.vtVRam[Utils.int(0x1000 + i)] = bus.vtRom[Utils.int(offset + i)];
 			}
 		}
 		// register 3(swtich PRG-ROM bank)					- 切换RPG-ROM
@@ -117,32 +113,32 @@ class Mapper1 extends Node implements Mapper {
 			}
 			nReg3 = nTemp;
 			if (nRomMode == 0 || nRomMode == 1) { // switch 32K PRG-ROM			- 切换32K的PRG-ROM
-				offset = 0x10 + int((nReg3 >> 1 & 0x7) % int(bus.nPRomNum / 2) * 0x8000);
+				offset = 0x10 + Utils.int((nReg3 >> 1 & 0x7) % Utils.int(bus.nPRomNum / 2) * 0x8000);
 
 				for (i in 0...0x8000) {
-					bus.cpu.vtMem[int(0x8000 + i)] = bus.vtRom[int(offset + i)];
+					bus.cpu.vtMem[Utils.int(0x8000 + i)] = bus.vtRom[Utils.int(offset + i)];
 				}
 			} else if (nRomMode == 2) { // switch upper PRG-ROM of 16K	- 切换高部16K的PRG-ROM
-				offset = 0x10 + int(int(nReg3 % bus.nPRomNum) * 0x4000);
+				offset = 0x10 + Utils.int(Utils.int(nReg3 % bus.nPRomNum) * 0x4000);
 
 				for (i in 0...0x4000) {
-					bus.cpu.vtMem[int(0xC000 + i)] = bus.vtRom[int(offset + i)];
+					bus.cpu.vtMem[Utils.int(0xC000 + i)] = bus.vtRom[Utils.int(offset + i)];
 				}
 				// must be need:load first PRG-ROM of 16K(载入第一个16K的PRG-ROM)
 				// offset = 0x10;
 				// for(i = 0;i < 0x4000; i+=1){
-				//	bus.cpu.vtMem[int(0x8000 + i)] = bus.vtRom[int(offset + i)];
+				//	bus.cpu.vtMem[Utils.int(0x8000 + i)] = bus.vtRom[Utils.int(offset + i)];
 				// }
 			} else if (nRomMode == 3) { // switch lower PRG-ROM of 16K	- 切换低部16K的PRG-ROM
-				offset = 0x10 + int(int(nReg3 % bus.nPRomNum) * 0x4000);
+				offset = 0x10 + Utils.int(Utils.int(nReg3 % bus.nPRomNum) * 0x4000);
 
 				for (i in 0...0x4000) {
-					bus.cpu.vtMem[int(0x8000 + i)] = bus.vtRom[int(offset + i)];
+					bus.cpu.vtMem[Utils.int(0x8000 + i)] = bus.vtRom[Utils.int(offset + i)];
 				}
 				// must be need:load last PRG-ROM of 16K(载入最后一个16K的PRG-ROM)
-				// offset = 0x10 + int(int(bus.nPRomNum - 1) * 0x4000);
+				// offset = 0x10 + Utils.int(Utils.int(bus.nPRomNum - 1) * 0x4000);
 				// for(i = 0;i < 0x4000; i+=1){
-				//	bus.cpu.vtMem[int(0xC000 + i)] = bus.vtRom[int(offset + i)];
+				//	bus.cpu.vtMem[Utils.int(0xC000 + i)] = bus.vtRom[Utils.int(offset + i)];
 				// }
 			}
 		}

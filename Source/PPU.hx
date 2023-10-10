@@ -3,19 +3,7 @@ package;
 import openfl.Vector;
 
 class PPU extends Node {
-	function int(x:Any):Int {
-
-		return Std.int(x);
-	}
-
-    function b_int(x:Bool):Int {
-        return x ? 1 : 0;
-    }
-
-	function Boolean(x:Int):Bool {
-		return x != 0;
-	}
-
+	
 	/** I/0 register
 		--------------------------- */
 	// ------------ 2000
@@ -182,22 +170,24 @@ class PPU extends Node {
 		H = 0;
 		VH = 0;
 		//----------------------------------------------------
-		vtVRam =  [for(c in 0...0x10000) 0];//new Array<Int>();//(0x10000);
-		vtSpRAM = [for(c in 0...0x100) 0];// new Array<Int>();//(0x100);
-		vtIMG = new Vector(256 * 240);//(256 * 240);
-        for(i in 0...256*240){
-            vtIMG[i] = 0;
-        }
+		vtVRam = [for (c in 0...0x10000) 0]; // new Array<Int>();//(0x10000);
+		vtSpRAM = [for (c in 0...0x100) 0]; // new Array<Int>();//(0x100);
+		vtIMG = new Vector(256 * 240); // (256 * 240);
+		for (i in 0...256 * 240) {
+			vtIMG[i] = 0;
+		}
 		//----------------------------------------------------
-		vtBG =  [for(c in 0...(256*240)) 0];//new Array<Int>();//(256 * 240);
+		vtBG = [for (c in 0...(256 * 240)) 0]; // new Array<Int>();//(256 * 240);
 		vtSM_0 = new Array<Int>();
-		vtSM_0 = [0x03, 0x03, 0x0C, 0x0C, 0x03, 0x03, 0x0C, 0x0C, 0x30, 0x30, 0xC0, 0xC0, 0x30, 0x30, 0xC0, 0xC0];
+		vtSM_0 = [
+			0x03, 0x03, 0x0C, 0x0C, 0x03, 0x03, 0x0C, 0x0C, 0x30, 0x30, 0xC0, 0xC0, 0x30, 0x30, 0xC0, 0xC0
+		];
 		vtSM_1 = new Array<Int>();
 		vtSM_1 = [0, 0, 2, 2, 0, 0, 2, 2, 4, 4, 6, 6, 4, 4, 6, 6];
 		nScanline = 0;
 		nRenderLine = 0;
 		bForcedVBlank = false;
-		vtSprite0 =  [for(c in 0...0x80) 0];//new Array<Int>();//(0x80);
+		vtSprite0 = [for (c in 0...0x80) 0]; // new Array<Int>();//(0x80);
 		//----------------------------------------------------
 		topX = 0;
 		topY = 0;
@@ -221,8 +211,8 @@ class PPU extends Node {
 		pal_data = 0;
 		pt0_row = 0;
 		pt1_row = 0;
-		pt0_vt = new Array<Int>();//(16);
-		pt1_vt = new Array<Int>();//(16);
+		pt0_vt = new Array<Int>(); // (16);
+		pt1_vt = new Array<Int>(); // (16);
 		pt_index = 0;
 		sp_at = 0;
 		bFG = false;
@@ -284,12 +274,12 @@ class PPU extends Node {
 	private function renderBGColor():Void {
 		nRenderLine = nScanline - 1;
 		point_row = nRenderLine * 256;
-       // trace(int(vtVRam[0x3F00]));
-		var bgColor:Int = bus.curPAL[int(vtVRam[0x3F00])];
-       
+		// trace(Utils.int(vtVRam[0x3F00]));
+		var bgColor:Int = bus.curPAL[Utils.int(vtVRam[0x3F00])];
+
 		for (i in 0...256) {
 			point = point_row + i;
-          
+
 			vtIMG[point] = bgColor;
 			vtBG[point] = 0;
 		}
@@ -313,24 +303,24 @@ class PPU extends Node {
 		var fineX:Int = FH;
 		var XRenderPoint:Int = 0; // X渲染点
 		// draw tile(渲染tile)
-        
-		//for (times in 0...33) {
-           var times:Int = 0;
-            while(times < 33){
-			VH = int((V << 11) + (H << 10)) + 0x2000;
+
+		// for (times in 0...33) {
+		var times:Int = 0;
+		while (times < 33) {
+			VH = Utils.int((V << 11) + (H << 10)) + 0x2000;
 			// 1.get name table(获取命名表)
-			nt_addr = int(VH + HT) + (VT << 5);
+			nt_addr = Utils.int(VH + HT) + (VT << 5);
 			// 2.get attribute table(获取属性表)
-			at_addr = int(VH + 0x3C0) + int(groupRow + (HT >> 2));
+			at_addr = Utils.int(VH + 0x3C0) + Utils.int(groupRow + (HT >> 2));
 			// 3.get pattern table(获取命名表值=图案表)
-			pt_addr = (vtVRam[nt_addr] << 4) + int(nBGHeadAddr + FV);
+			pt_addr = (vtVRam[nt_addr] << 4) + Utils.int(nBGHeadAddr + FV);
 			// 4.get tile index(获取Tile对应的方块索引)
 			sq_index = squareRow + (HT & 0x03);
 			// 5.get upper 2 bits of palette(获取高2位调色板值)
 			u_bit_pal = (vtVRam[at_addr] & vtSM_0[sq_index]) >> vtSM_1[sq_index];
 			// 6.get character matrix(获取字模矩阵)
 			pt0_data = vtVRam[pt_addr];
-			pt1_data = vtVRam[int(pt_addr + 8)];
+			pt1_data = vtVRam[Utils.int(pt_addr + 8)];
 			// 7.get draw point position(生成渲染起点)
 			point = point_row + XRenderPoint;
 			// 8.get render X(渲染X轴像素)
@@ -339,11 +329,11 @@ class PPU extends Node {
 				// 1.get lower 2 bits of palette(获取低2位调色板值/也是背景矩阵/00为背景色板)
 				l_bit_pal = ((pt1_data & 0x80 >> fineX) << 1 | (pt0_data & 0x80 >> fineX)) >> (7 - fineX);
 				// 2.get color of palette(获取调色板颜色)
-				pal_data = vtVRam[int(0x3F00 + (u_bit_pal << 2 | l_bit_pal))];
+				pal_data = vtVRam[Utils.int(0x3F00 + (u_bit_pal << 2 | l_bit_pal))];
 				// 3.save point of infomation(保存点信息)
 				vtIMG[point] = bus.curPAL[pal_data];
 				vtBG[point] = l_bit_pal; // used in hit(保存背景矩阵以用作与Sprite做碰撞测试)
-				// 4.move to next render point(偏移下个渲染点)
+				// 4.move to next render poUtils.int(偏移下个渲染点)
 				point += 1;
 				XRenderPoint += 1;
 				if (XRenderPoint >= 256) { // 256个点
@@ -360,7 +350,7 @@ class PPU extends Node {
 			if (HT == 0) {
 				H ^= 1;
 			}
-            times++;
+			times++;
 		}
 		// update FV、VT、V
 		FV += 1;
@@ -380,16 +370,16 @@ class PPU extends Node {
 		// update counter(更新计数器)
 		nReg2006 = (FV << 12) + (V << 11) + (H << 10) + (VT << 5) + HT;
 		// hit test(碰撞测试)
-		if (!bHit && nRenderLine < int(sp0_Y + sp_H) && nRenderLine >= sp0_Y) {
+		if (!bHit && nRenderLine < Utils.int(sp0_Y + sp_H) && nRenderLine >= sp0_Y) {
 			// for(XRenderPoint = 0;XRenderPoint < 256;XRenderPoint += 1){
 			XRenderPoint = 0;
 			while (XRenderPoint < 256) {
-				if (XRenderPoint >= int(sp0_X + 8)) {
+				if (XRenderPoint >= Utils.int(sp0_X + 8)) {
 					break;
 				}
 				if (XRenderPoint >= sp0_X) {
-					if (vtSprite0[int(int(nRenderLine - sp0_Y << 3) + int(XRenderPoint - sp0_X))] != 0
-						&& vtIMG[int(point_row + XRenderPoint)] != 0) {
+					if (vtSprite0[Utils.int(Utils.int(nRenderLine - sp0_Y << 3) + Utils.int(XRenderPoint - sp0_X))] != 0
+						&& vtIMG[Utils.int(point_row + XRenderPoint)] != 0) {
 						bHit = true;
 						break;
 					}
@@ -406,110 +396,110 @@ class PPU extends Node {
 		pt_index = vtSpRAM[1];
 		sp_at = vtSpRAM[2];
 		sp0_X = vtSpRAM[3];
-		sp_H = 1 << 3 + b_int(b8x16);
+		sp_H = 1 << 3 + Utils.int(b8x16);
 		// 2.parse attribute(分析属性)
 		u_bit_pal = sp_at & 0x03;
 		bFG = (sp_at & 0x20) == 0; // foreground
-		bFlipH = Boolean(sp_at & 0x40);
-		bFlipV = Boolean(sp_at & 0x80);
+		bFlipH = Utils.i2b(sp_at & 0x40);
+		bFlipV = Utils.i2b(sp_at & 0x80);
 		if (b8x16) {
 			if ((pt_index & 1) == 0) { // even number(偶数)
 				// 1.get pattern table(获取图案表)
 				pt_addr = pt_index << 4;
 				// 2.get matrix(获取矩阵)
-				pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-				pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-				pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-				pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-				pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-				pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-				pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-				pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-				pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-				pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-				pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-				pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-				pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-				pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-				pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-				pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
-				pt0_vt[0x8] = vtVRam[int(pt_addr + 0x10)];
-				pt1_vt[0x8] = vtVRam[int(pt_addr + 0x18)];
-				pt0_vt[0x9] = vtVRam[int(pt_addr + 0x11)];
-				pt1_vt[0x9] = vtVRam[int(pt_addr + 0x19)];
-				pt0_vt[0xA] = vtVRam[int(pt_addr + 0x12)];
-				pt1_vt[0xA] = vtVRam[int(pt_addr + 0x1A)];
-				pt0_vt[0xB] = vtVRam[int(pt_addr + 0x13)];
-				pt1_vt[0xB] = vtVRam[int(pt_addr + 0x1B)];
-				pt0_vt[0xC] = vtVRam[int(pt_addr + 0x14)];
-				pt1_vt[0xC] = vtVRam[int(pt_addr + 0x1C)];
-				pt0_vt[0xD] = vtVRam[int(pt_addr + 0x15)];
-				pt1_vt[0xD] = vtVRam[int(pt_addr + 0x1D)];
-				pt0_vt[0xE] = vtVRam[int(pt_addr + 0x16)];
-				pt1_vt[0xE] = vtVRam[int(pt_addr + 0x1E)];
-				pt0_vt[0xF] = vtVRam[int(pt_addr + 0x17)];
-				pt1_vt[0xF] = vtVRam[int(pt_addr + 0x1F)];
+				pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+				pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+				pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+				pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+				pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+				pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+				pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+				pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+				pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+				pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+				pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+				pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+				pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+				pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+				pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+				pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
+				pt0_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x10)];
+				pt1_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x18)];
+				pt0_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x11)];
+				pt1_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x19)];
+				pt0_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x12)];
+				pt1_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x1A)];
+				pt0_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x13)];
+				pt1_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x1B)];
+				pt0_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x14)];
+				pt1_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x1C)];
+				pt0_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x15)];
+				pt1_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x1D)];
+				pt0_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x16)];
+				pt1_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x1E)];
+				pt0_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x17)];
+				pt1_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x1F)];
 			} else { // odd number(奇数)
 				// 1.get pattern table(获取图案表)
 				pt_addr = 0x1000 + ((pt_index & 0xFE) << 4);
 				// 2.get matrix(获取矩阵)
-				pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-				pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-				pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-				pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-				pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-				pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-				pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-				pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-				pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-				pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-				pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-				pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-				pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-				pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-				pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-				pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
-				pt0_vt[0x8] = vtVRam[int(pt_addr + 0x10)];
-				pt1_vt[0x8] = vtVRam[int(pt_addr + 0x18)];
-				pt0_vt[0x9] = vtVRam[int(pt_addr + 0x11)];
-				pt1_vt[0x9] = vtVRam[int(pt_addr + 0x19)];
-				pt0_vt[0xA] = vtVRam[int(pt_addr + 0x12)];
-				pt1_vt[0xA] = vtVRam[int(pt_addr + 0x1A)];
-				pt0_vt[0xB] = vtVRam[int(pt_addr + 0x13)];
-				pt1_vt[0xB] = vtVRam[int(pt_addr + 0x1B)];
-				pt0_vt[0xC] = vtVRam[int(pt_addr + 0x14)];
-				pt1_vt[0xC] = vtVRam[int(pt_addr + 0x1C)];
-				pt0_vt[0xD] = vtVRam[int(pt_addr + 0x15)];
-				pt1_vt[0xD] = vtVRam[int(pt_addr + 0x1D)];
-				pt0_vt[0xE] = vtVRam[int(pt_addr + 0x16)];
-				pt1_vt[0xE] = vtVRam[int(pt_addr + 0x1E)];
-				pt0_vt[0xF] = vtVRam[int(pt_addr + 0x17)];
-				pt1_vt[0xF] = vtVRam[int(pt_addr + 0x1F)];
+				pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+				pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+				pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+				pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+				pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+				pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+				pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+				pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+				pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+				pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+				pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+				pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+				pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+				pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+				pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+				pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
+				pt0_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x10)];
+				pt1_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x18)];
+				pt0_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x11)];
+				pt1_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x19)];
+				pt0_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x12)];
+				pt1_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x1A)];
+				pt0_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x13)];
+				pt1_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x1B)];
+				pt0_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x14)];
+				pt1_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x1C)];
+				pt0_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x15)];
+				pt1_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x1D)];
+				pt0_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x16)];
+				pt1_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x1E)];
+				pt0_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x17)];
+				pt1_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x1F)];
 			}
 		} else {
 			// 1.get pattern table(获取图案表)
 			pt_addr = nSPHeadAddr + (pt_index << 4);
 			// 2.get matrix(获取矩阵)
-			pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-			pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-			pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-			pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-			pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-			pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-			pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-			pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-			pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-			pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-			pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-			pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-			pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-			pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-			pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-			pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
+			pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+			pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+			pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+			pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+			pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+			pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+			pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+			pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+			pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+			pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+			pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+			pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+			pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+			pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+			pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+			pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
 		}
 		// 3.render(渲染)
 		for (spY in 0...sp_H) { // offset Y				- Y偏移点
-			bFlipV ? fitY = int(sp_H - 1) - spY : fitY = spY; // flip vertical		- 垂直翻转
+			bFlipV ? fitY = Utils.int(sp_H - 1) - spY : fitY = spY; // flip vertical		- 垂直翻转
 			pt0_row = pt0_vt[fitY]; // 对应字模0
 			pt1_row = pt1_vt[fitY]; // 对应字模1
 			for (spX in 0...8) { // offset X				- X偏移点
@@ -528,113 +518,113 @@ class PPU extends Node {
 		while (index >= 0) {
 			// 1.get infomation(获取信息)
 			topY = vtSpRAM[index];
-			pt_index = vtSpRAM[int(index + 1)];
-			sp_at = vtSpRAM[int(index + 2)];
-			topX = vtSpRAM[int(index + 3)];
-			sp_H = 1 << 3 + b_int(b8x16);
+			pt_index = vtSpRAM[Utils.int(index + 1)];
+			sp_at = vtSpRAM[Utils.int(index + 2)];
+			topX = vtSpRAM[Utils.int(index + 3)];
+			sp_H = 1 << 3 + Utils.int(b8x16);
 			// 2.parse attribute(分析属性)
 			u_bit_pal = sp_at & 0x03;
 			bFG = (sp_at & 0x20) == 0; // foreground
-			bFlipH = Boolean(sp_at & 0x40);
-			bFlipV = Boolean(sp_at & 0x80);
+			bFlipH = Utils.i2b(sp_at & 0x40);
+			bFlipV = Utils.i2b(sp_at & 0x80);
 			if (b8x16) {
 				if ((pt_index & 1) == 0) { // even number(偶数)
 					// 1.get pattern table(获取图案表)
 					pt_addr = pt_index << 4;
 					// 2.get matrix(获取矩阵)
-					pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-					pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-					pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-					pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-					pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-					pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-					pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-					pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-					pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-					pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-					pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-					pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-					pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-					pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-					pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-					pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
-					pt0_vt[0x8] = vtVRam[int(pt_addr + 0x10)];
-					pt1_vt[0x8] = vtVRam[int(pt_addr + 0x18)];
-					pt0_vt[0x9] = vtVRam[int(pt_addr + 0x11)];
-					pt1_vt[0x9] = vtVRam[int(pt_addr + 0x19)];
-					pt0_vt[0xA] = vtVRam[int(pt_addr + 0x12)];
-					pt1_vt[0xA] = vtVRam[int(pt_addr + 0x1A)];
-					pt0_vt[0xB] = vtVRam[int(pt_addr + 0x13)];
-					pt1_vt[0xB] = vtVRam[int(pt_addr + 0x1B)];
-					pt0_vt[0xC] = vtVRam[int(pt_addr + 0x14)];
-					pt1_vt[0xC] = vtVRam[int(pt_addr + 0x1C)];
-					pt0_vt[0xD] = vtVRam[int(pt_addr + 0x15)];
-					pt1_vt[0xD] = vtVRam[int(pt_addr + 0x1D)];
-					pt0_vt[0xE] = vtVRam[int(pt_addr + 0x16)];
-					pt1_vt[0xE] = vtVRam[int(pt_addr + 0x1E)];
-					pt0_vt[0xF] = vtVRam[int(pt_addr + 0x17)];
-					pt1_vt[0xF] = vtVRam[int(pt_addr + 0x1F)];
+					pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+					pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+					pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+					pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+					pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+					pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+					pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+					pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+					pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+					pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+					pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+					pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+					pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+					pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+					pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+					pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
+					pt0_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x10)];
+					pt1_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x18)];
+					pt0_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x11)];
+					pt1_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x19)];
+					pt0_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x12)];
+					pt1_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x1A)];
+					pt0_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x13)];
+					pt1_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x1B)];
+					pt0_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x14)];
+					pt1_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x1C)];
+					pt0_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x15)];
+					pt1_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x1D)];
+					pt0_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x16)];
+					pt1_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x1E)];
+					pt0_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x17)];
+					pt1_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x1F)];
 				} else { // odd number(奇数)
 					// 1.get pattern table(获取图案表)
 					pt_addr = 0x1000 + ((pt_index & 0xFE) << 4);
 					// 2.get matrix(获取矩阵)
-					pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-					pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-					pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-					pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-					pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-					pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-					pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-					pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-					pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-					pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-					pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-					pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-					pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-					pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-					pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-					pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
-					pt0_vt[0x8] = vtVRam[int(pt_addr + 0x10)];
-					pt1_vt[0x8] = vtVRam[int(pt_addr + 0x18)];
-					pt0_vt[0x9] = vtVRam[int(pt_addr + 0x11)];
-					pt1_vt[0x9] = vtVRam[int(pt_addr + 0x19)];
-					pt0_vt[0xA] = vtVRam[int(pt_addr + 0x12)];
-					pt1_vt[0xA] = vtVRam[int(pt_addr + 0x1A)];
-					pt0_vt[0xB] = vtVRam[int(pt_addr + 0x13)];
-					pt1_vt[0xB] = vtVRam[int(pt_addr + 0x1B)];
-					pt0_vt[0xC] = vtVRam[int(pt_addr + 0x14)];
-					pt1_vt[0xC] = vtVRam[int(pt_addr + 0x1C)];
-					pt0_vt[0xD] = vtVRam[int(pt_addr + 0x15)];
-					pt1_vt[0xD] = vtVRam[int(pt_addr + 0x1D)];
-					pt0_vt[0xE] = vtVRam[int(pt_addr + 0x16)];
-					pt1_vt[0xE] = vtVRam[int(pt_addr + 0x1E)];
-					pt0_vt[0xF] = vtVRam[int(pt_addr + 0x17)];
-					pt1_vt[0xF] = vtVRam[int(pt_addr + 0x1F)];
+					pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+					pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+					pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+					pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+					pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+					pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+					pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+					pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+					pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+					pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+					pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+					pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+					pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+					pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+					pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+					pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
+					pt0_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x10)];
+					pt1_vt[0x8] = vtVRam[Utils.int(pt_addr + 0x18)];
+					pt0_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x11)];
+					pt1_vt[0x9] = vtVRam[Utils.int(pt_addr + 0x19)];
+					pt0_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x12)];
+					pt1_vt[0xA] = vtVRam[Utils.int(pt_addr + 0x1A)];
+					pt0_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x13)];
+					pt1_vt[0xB] = vtVRam[Utils.int(pt_addr + 0x1B)];
+					pt0_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x14)];
+					pt1_vt[0xC] = vtVRam[Utils.int(pt_addr + 0x1C)];
+					pt0_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x15)];
+					pt1_vt[0xD] = vtVRam[Utils.int(pt_addr + 0x1D)];
+					pt0_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x16)];
+					pt1_vt[0xE] = vtVRam[Utils.int(pt_addr + 0x1E)];
+					pt0_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x17)];
+					pt1_vt[0xF] = vtVRam[Utils.int(pt_addr + 0x1F)];
 				}
 			} else {
 				// 1.get pattern table(获取图案表)
 				pt_addr = nSPHeadAddr + (pt_index << 4);
 				// 2.get matrix(获取矩阵)
-				pt0_vt[0x0] = vtVRam[int(pt_addr + 0x00)];
-				pt1_vt[0x0] = vtVRam[int(pt_addr + 0x08)];
-				pt0_vt[0x1] = vtVRam[int(pt_addr + 0x01)];
-				pt1_vt[0x1] = vtVRam[int(pt_addr + 0x09)];
-				pt0_vt[0x2] = vtVRam[int(pt_addr + 0x02)];
-				pt1_vt[0x2] = vtVRam[int(pt_addr + 0x0A)];
-				pt0_vt[0x3] = vtVRam[int(pt_addr + 0x03)];
-				pt1_vt[0x3] = vtVRam[int(pt_addr + 0x0B)];
-				pt0_vt[0x4] = vtVRam[int(pt_addr + 0x04)];
-				pt1_vt[0x4] = vtVRam[int(pt_addr + 0x0C)];
-				pt0_vt[0x5] = vtVRam[int(pt_addr + 0x05)];
-				pt1_vt[0x5] = vtVRam[int(pt_addr + 0x0D)];
-				pt0_vt[0x6] = vtVRam[int(pt_addr + 0x06)];
-				pt1_vt[0x6] = vtVRam[int(pt_addr + 0x0E)];
-				pt0_vt[0x7] = vtVRam[int(pt_addr + 0x07)];
-				pt1_vt[0x7] = vtVRam[int(pt_addr + 0x0F)];
+				pt0_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x00)];
+				pt1_vt[0x0] = vtVRam[Utils.int(pt_addr + 0x08)];
+				pt0_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x01)];
+				pt1_vt[0x1] = vtVRam[Utils.int(pt_addr + 0x09)];
+				pt0_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x02)];
+				pt1_vt[0x2] = vtVRam[Utils.int(pt_addr + 0x0A)];
+				pt0_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x03)];
+				pt1_vt[0x3] = vtVRam[Utils.int(pt_addr + 0x0B)];
+				pt0_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x04)];
+				pt1_vt[0x4] = vtVRam[Utils.int(pt_addr + 0x0C)];
+				pt0_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x05)];
+				pt1_vt[0x5] = vtVRam[Utils.int(pt_addr + 0x0D)];
+				pt0_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x06)];
+				pt1_vt[0x6] = vtVRam[Utils.int(pt_addr + 0x0E)];
+				pt0_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x07)];
+				pt1_vt[0x7] = vtVRam[Utils.int(pt_addr + 0x0F)];
 			}
 			// 3.render(渲染)
 			for (spY in 0...sp_H) { // offset Y				- Y偏移点
-				bFlipV ? fitY = int(sp_H - 1) - spY : fitY = spY; // flip vertical		- 垂直翻转
+				bFlipV ? fitY = Utils.int(sp_H - 1) - spY : fitY = spY; // flip vertical		- 垂直翻转
 				pt0_row = pt0_vt[fitY]; // 对应字模0
 				pt1_row = pt1_vt[fitY]; // 对应字模1
 				for (spX in 0...8) { // offset X				- X偏移点
@@ -645,16 +635,16 @@ class PPU extends Node {
 						continue;
 					}
 					l_bit_pal = ((pt1_row & 0x80 >> fitX) << 1 | (pt0_row & 0x80 >> fitX)) >> (7 - fitX);
-					// dont render transparent point(不渲染透明点)
+					// dont render transparent poUtils.int(不渲染透明点)
 					if (l_bit_pal == 0) {
 						continue;
 					}
-					point = int(bitY * 256) + bitX; // current render point - 当前渲染点
+					point = Utils.int(bitY * 256) + bitX; // current render point - 当前渲染点
 					bg_point = vtBG[point]; // 对应的背景点
 					// if it is in foreground and isnt transparent(如果在前景或背景为透明的话)
 					if (bFG || bg_point == 0) {
 						pal_index = u_bit_pal << 2 | l_bit_pal; // make color index		- 生成颜色索引
-						pal_data = vtVRam[int(0x3F10 + pal_index)];
+						pal_data = vtVRam[Utils.int(0x3F10 + pal_index)];
 						vtIMG[point] = bus.curPAL[pal_data]; // save ponit(保存点)
 					}
 				}
@@ -668,7 +658,7 @@ class PPU extends Node {
 		// inline:return PPU_r2(address);#
 		var value:Int = 0;
 		if (address == 0x2002) { // PPU status	- PPU状态
-			value = b_int(bVBlank) << 7 | b_int(bHit) << 6 | b_int(bMore8Sprite) << 5 | b_int(bIgnoreWrite) << 4;
+			value = Utils.int(bVBlank) << 7 | Utils.int(bHit) << 6 | Utils.int(bMore8Sprite) << 5 | Utils.int(bIgnoreWrite) << 4;
 			bVBlank = false;
 			bToggle = false;
 		} else if (address == 0x2007) { // VRAM data	- VRAM 数据
@@ -683,7 +673,7 @@ class PPU extends Node {
 				nReadBuffer = vtVRam[nReg2006];
 			}
 			// move to next position(移动下个位置)
-			nReg2006 += 1 + int(nOffset32 * 31);
+			nReg2006 += 1 + Utils.int(nOffset32 * 31);
 			nReg2006 &= 0xFFFF;
 		} else if (address == 0x2004) {
 			value = vtVRam[nReg2003];
@@ -720,46 +710,46 @@ class PPU extends Node {
 				trace('PPU write 0x3000', nScanline);
 			} else if (nReg2006 >= 0x2000) {
 				if (bus.bMirror_S) {
-					vtVRam[int(0x2000 + (nReg2006 & 0x3FF))] = value;
-					vtVRam[int(0x2400 + (nReg2006 & 0x3FF))] = value;
-					vtVRam[int(0x2800 + (nReg2006 & 0x3FF))] = value;
-					vtVRam[int(0x2C00 + (nReg2006 & 0x3FF))] = value;
+					vtVRam[Utils.int(0x2000 + (nReg2006 & 0x3FF))] = value;
+					vtVRam[Utils.int(0x2400 + (nReg2006 & 0x3FF))] = value;
+					vtVRam[Utils.int(0x2800 + (nReg2006 & 0x3FF))] = value;
+					vtVRam[Utils.int(0x2C00 + (nReg2006 & 0x3FF))] = value;
 				} else if (bus.bMirror_F) {
 					vtVRam[nReg2006] = value;
 				} else if (nReg2006 >= 0x2C00) {
 					vtVRam[nReg2006] = value;
 					if (bus.bMirror_V) {
-						vtVRam[int(nReg2006 - 0x0800)] = value;
+						vtVRam[Utils.int(nReg2006 - 0x0800)] = value;
 					} else {
-						vtVRam[int(nReg2006 - 0x0400)] = value;
+						vtVRam[Utils.int(nReg2006 - 0x0400)] = value;
 					}
 				} else if (nReg2006 >= 0x2800) {
 					vtVRam[nReg2006] = value;
 					if (bus.bMirror_V) {
-						vtVRam[int(nReg2006 - 0x0800)] = value;
+						vtVRam[Utils.int(nReg2006 - 0x0800)] = value;
 					} else {
-						vtVRam[int(nReg2006 + 0x0400)] = value;
+						vtVRam[Utils.int(nReg2006 + 0x0400)] = value;
 					}
 				} else if (nReg2006 >= 0x2400) {
 					vtVRam[nReg2006] = value;
 					if (bus.bMirror_V) {
-						vtVRam[int(nReg2006 + 0x0800)] = value;
+						vtVRam[Utils.int(nReg2006 + 0x0800)] = value;
 					} else {
-						vtVRam[int(nReg2006 - 0x0400)] = value;
+						vtVRam[Utils.int(nReg2006 - 0x0400)] = value;
 					}
 				} else if (nReg2006 >= 0x2000) {
 					vtVRam[nReg2006] = value;
 					if (bus.bMirror_V) {
-						vtVRam[int(nReg2006 + 0x0800)] = value;
+						vtVRam[Utils.int(nReg2006 + 0x0800)] = value;
 					} else {
-						vtVRam[int(nReg2006 + 0x0400)] = value;
+						vtVRam[Utils.int(nReg2006 + 0x0400)] = value;
 					}
 				}
 			} else {
 				vtVRam[nReg2006] = value;
 			}
 			// move to next position(移动下个位置)
-			nReg2006 += 1 + int(nOffset32 * 31);
+			nReg2006 += 1 + Utils.int(nOffset32 * 31);
 			nReg2006 &= 0xFFFF;
 		} else if (address == 0x2006) { // VRAM address				- VRAM地址
 			if (bToggle) { // lower,second time		- 低位,第二次
@@ -789,9 +779,9 @@ class PPU extends Node {
 		} else if (address == 0x2003) { // Spirte RAM data
 			nReg2003 = value;
 		} else if (address == 0x2001) { // control register 2		- 控制寄存器2
-			bBWColor = Boolean(value & 0x01);
-			bBgL1Col = Boolean(value & 0x02);
-			bSpL1Col = Boolean(value & 0x04);
+			bBWColor = Utils.i2b(value & 0x01);
+			bBgL1Col = Utils.i2b(value & 0x02);
+			bSpL1Col = Utils.i2b(value & 0x04);
 			bHideBG = (value & 0x08) == 0;
 			bHideSP = (value & 0x10) == 0;
 			nLightness = (value & 0xE0) >> 5;
@@ -800,10 +790,10 @@ class PPU extends Node {
 			nRegTemp &= 0xF3FF; // cleare data				- 清数据
 			nRegTemp |= (value & 0x03) << 10;
 			nOffset32 = (value & 0x4) >> 2;
-			nSPHeadAddr = (value & 0x08) == 0 ?  0x1000 :  (value & 0x08);
-			nBGHeadAddr = (value & 0x10) == 0 ? 0x1000 : (value & 0x10);
-			b8x16 = Boolean(value & 0x20);
-			bNMI = Boolean(value & 0x80);
+			nSPHeadAddr = (value & 0x08) == 0 ? 0 : 0x1000;
+			nBGHeadAddr = (value & 0x10) == 0 ? 0 : 0x1000;
+			b8x16 = Utils.i2b(value & 0x20);
+			bNMI = Utils.i2b(value & 0x80);
 		} else {
 			trace('unknown PPU write', address);
 		}

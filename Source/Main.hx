@@ -10,7 +10,6 @@ import openfl.text.TextField;
 import openfl.display.Bitmap;
 import openfl.net.FileReference;
 import openfl.display.Sprite;
-
 class Main extends Sprite {
 	// global variable
 	var timeId:UInt;
