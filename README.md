@@ -2,12 +2,11 @@
 
 AminNes Openfl 版
 
+<img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s1.png" width="200"> 
 
-![Screenshot - 1](https://github.com/FlashTang/ANesX/blob/main/Screenshots/s1.png)
+<img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s2.png" width="200"> 
 
-![Screenshot - 2](https://github.com/FlashTang/ANesX/blob/main/Screenshots/s2.png)
-
-![Screenshot - 3](https://github.com/FlashTang/ANesX/blob/main/Screenshots/s3.png)
+<img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s3.png" width="200"> 
 
 目前状态：能运行, <del>但花屏<del/>
 
