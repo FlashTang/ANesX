@@ -9,7 +9,7 @@ AminNes Openfl 版
 
 ![Screenshot - 3](https://github.com/FlashTang/ANesX/blob/main/Screenshots/s3.png)
 
-目前状态：能运行
+目前状态：能运行, <del>但花屏<del/>
 
 运行：
 openfl test flash
