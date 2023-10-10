@@ -1,5 +1,9 @@
 # ANesX
 
+截图：
+
+<img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s1.png" width="200"> <img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s2.png" width="200"> <img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s3.png" width="200"> 
+
 AminNes Openfl 版
 
 目前状态：能运行, <del>但花屏<del/>
@@ -15,7 +19,3 @@ https://code.google.com/archive/p/aminnes/
 
 原作者js升级版：
 https://github.com/amin2312/ANes
-
-截图：
-
-<img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s1.png" width="200"> <img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s2.png" width="200"> <img src="https://github.com/FlashTang/ANesX/blob/main/Screenshots/s3.png" width="200"> 
